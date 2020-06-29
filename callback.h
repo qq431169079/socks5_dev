@@ -21,4 +21,8 @@ void handle_socks5_request(uv_stream_t *handle,ssize_t nread, const uv_buf_t *bu
 int upstream_tcp_connect(uv_connect_t *req, struct sockaddr *addr);
 void upstream_tcp_connect_cb(uv_connect_t* req, int status);
 void finish_socks5_tcp_handshake(session_t *session);
+void finish_socks5_handshake(session_t *session, struct sockaddr *addr);
+int upstream_tcp_read_start(uv_stream_t *handle);
+void on_upstream_tcp_alloc(uv_handle_t *handle, size_t size, uv_buf_t *buf);
+void on_upstream_tcp_read_done(uv_stream_t *handle, ssize_t nread,const uv_buf_t *buf);
 #endif
