@@ -5,7 +5,8 @@ set(CMAKE_C_STANDARD 99)
 
 #################################
 #编译环境：
-#libuv版本 ：1.18.0
+#libuv版本 ：1.18.0    offical-site: https://github.com/libuv/libuv
+#logger版本：0.1.0     logger-site: https://github.com/shiffthq/logger
 #################################
 
 
