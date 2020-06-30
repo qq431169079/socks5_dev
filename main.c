@@ -107,9 +107,11 @@ int main(int argc ,char *argv[]){
 
     //初始化logger日志
     logger_init("test.log", LOGGER_LEVEL_TRACE);
+    
 
     char *localhost;
     int local_port;
+    //监听地址,端口
     localhost = "127.0.0.1";
     local_port = 1082;
 

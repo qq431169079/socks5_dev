@@ -1,7 +1,3 @@
-//
-// Created by User on 2020/6/25.
-//
-
 #include "resolve.h"
 #include "logger.h"
 #include <uv.h>

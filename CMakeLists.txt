@@ -11,7 +11,20 @@ set(CMAKE_C_STANDARD 99)
 
 
 add_executable(socks5_dev
-        main.c main.h resolve.c resolve.h defs.h session.c session.h socks5.c socks5.h callback.c callback.h logger.c logger.h)
+        main.c
+        main.h
+        resolve.c
+        resolve.h
+        defs.h
+        session.c
+        session.h
+        socks5.c
+        socks5.h
+        callback.c
+        callback.h
+        logger.c
+        logger.h
+        )
 
 #Openssl
 #find_package(OpenSSL REQUIRED)

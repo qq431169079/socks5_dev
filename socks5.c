@@ -25,11 +25,13 @@ socks5_result_t socks5_parse_method_identification(socks5_info_t *socks5_info, c
 
     socks5_info->state = VERSION;
     int i = 0;
+
     //验证socks5
     while(i < size)
     {
         unsigned char da = (unsigned char) data[i];
         switch(socks5_info->state){
+
             //验证版本VERSION
             case VERSION:
 

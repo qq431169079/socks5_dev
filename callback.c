@@ -17,6 +17,7 @@ int client_tcp_read_start(uv_stream_t *handle)
         return -1;
     }
     int err;
+    //读取流数据
     err = uv_read_start(handle, on_client_tcp_alloc, on_client_tcp_read_done);
     if (err!= 0)
     {
@@ -96,6 +97,7 @@ void handle_socks5_method_identification(uv_stream_t *handle,ssize_t nread, cons
 }
 
 void on_client_tcp_read_done(uv_stream_t* handle,ssize_t nread,const uv_buf_t* buf){
+
     if (nread == 0)
     {
         return;
@@ -313,7 +315,7 @@ void upstream_tcp_connect_cb(uv_connect_t* req, int status){
 
 
 /**
- * 完成握手
+ * socks5tcp完成握手
  * @param session
  */
 void finish_socks5_tcp_handshake(session_t *session) {
