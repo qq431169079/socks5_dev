@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include "socks5.h"
+#include "logger.h"
 
 
 /**
@@ -33,7 +34,7 @@ socks5_result_t socks5_parse_method_identification(socks5_info_t *socks5_info, c
             case VERSION:
 
                 if (da != SOCKS5_VERSION){
-                    printf("socks version bad\n");
+                    logger_error("socks version bad\n");
                     return S5_BAD_VERSION;
                 }
                 socks5_info->state = NMETHODS;
@@ -65,6 +66,7 @@ socks5_result_t socks5_parse_method_identification(socks5_info_t *socks5_info, c
                 }
                 break;
             case FINISH:
+                logger_error("junk in handshake: %d - %d", i + 1, size);
                 return S5_JUNK_DATA_IN_HANDSHAKE;
                 break;
             default:
@@ -102,14 +104,14 @@ socks5_result_t socks5_parse_request(socks5_info_t *socks5_ctx, const char *data
         {
             case REQ_VERSION:
                 if (da != SOCKS5_VERSION) {
-                    printf("bad version: %d", da);
+                    logger_error("bad version: %d", da);
                     return S5_BAD_VERSION;
                 }
                 socks5_ctx->state = REQ_CMD;
                 break;
             case REQ_CMD:
                 if (da!= S5_CMD_CONNECT && da != S5_CMD_UDP_ASSOCIATE){
-                    printf("unsuppord cmd : %d",da);
+                    logger_error("unsuppord cmd : %d",da);
                     return S5_UNSUPPORTED_CMD;
                 }
                 socks5_ctx->cmd = da;
@@ -118,7 +120,6 @@ socks5_result_t socks5_parse_request(socks5_info_t *socks5_ctx, const char *data
             case REQ_RSV:
                 //指针右移i位，size减小i位
                 return socks5_parse_addr_and_port(socks5_ctx,data + i,size - i,0);
-                break;
             default:
                 break;
         }
@@ -191,7 +192,7 @@ socks5_result_t socks5_parse_addr_and_port(socks5_info_t *socks5_info, const cha
                 }
                 break;
             case FINISH:
-                printf("junk in handshake: %d - %d",i+1,size);
+                logger_error("junk in handshake: %d - %d",i+1,size);
                 return S5_JUN_DATA_IN_REQUEST;
                 break;
             default:

@@ -13,6 +13,7 @@ void *lmalloc(size_t size);
 void *lrealloc(void *p,size_t size);
 
 int resolve_addr(struct sockaddr *addr,int port,char * ipstr, int ipstr_len, struct addrinfo *ai);
-
+void do_check(int resolve);
+void log_ipv4_and_port(void *ipv4, int port, const char *msg);
 
 #endif //SOCKS5_DEV_RESOLVE_H

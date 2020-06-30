@@ -5,10 +5,9 @@
       <paths name="Remote Host (24fa41f6-3499-40c0-9a92-9abf7c946b44)">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/tmp.kIIWtVVo4X" local="$PROJECT_DIR$" />
+            <mapping deploy="/tmp/tmp.yYyeLe4oHv" local="$PROJECT_DIR$" />
           </mappings>
           <excludedPaths>
-            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
             <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
           </excludedPaths>
         </serverdata>

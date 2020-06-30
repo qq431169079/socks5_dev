@@ -2,6 +2,7 @@
 #include "session.h"
 #include "defs.h"
 #include "resolve.h"
+#include "logger.h"
 
 session_t *create_session()
 {
@@ -21,7 +22,7 @@ void close_session(session_t *session)
     }
     //设置关闭
     session->session_fields.state = S5_CLOSING;
-    printf("now will close session: %p",session);
+    logger_trace("now will close session: %p \n",session);
     if (session->session_fields.type == SESSION_TYPE_TCP)
     {
         session->session_fields.heap_obj_count = 2;
@@ -58,7 +59,7 @@ void handle_close_cb(uv_handle_t *handle)
     free(handle);
 
     if (session->session_fields.heap_obj_count == 0) {
-        LOG_V("now will free the session object: %p", session);
+        logger_info("now will free the session object: %p \n", session);
         free(session);
     }
 }

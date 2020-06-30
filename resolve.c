@@ -3,6 +3,7 @@
 //
 
 #include "resolve.h"
+#include "logger.h"
 #include <uv.h>
 #include <string.h>
 
@@ -43,8 +44,24 @@ int resolve_addr(struct sockaddr *addr,int port,char * ipstr, int ipstr_len, str
         addr6->sin6_port = (in_port_t) port;
         uv_inet_ntop(addr6->sin6_family, &addr6->sin6_addr, ipstr, (size_t) ipstr_len);
     } else{
-        printf("resolve error");
+        logger_warn("unexpected ai_family: %d", ai->ai_family);
         return -1;
     }
     return 0;
+}
+
+void do_check(int resolve){
+    do{
+        if (!resolve)
+        {
+            logger_error("Error occured on [%s:%d] %s()\n", __FILE__, __LINE__, __FUNCTION__);
+            exit(EXIT_FAILURE);
+        }
+    }while (0);
+}
+
+void log_ipv4_and_port(void *ipv4, int port, const char *msg) {
+    char data[INET_ADDRSTRLEN];
+    uv_inet_ntop(AF_INET, ipv4, data, INET_ADDRSTRLEN);
+    logger_trace("%s: %s:%d", msg, data, port);
 }
