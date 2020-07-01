@@ -122,9 +122,12 @@ void on_client_tcp_read_done(uv_stream_t* handle,ssize_t nread,const uv_buf_t* b
     }
     if (session->session_fields.state == S5_METHOD_IDENTIFICATION)
     {
+        logger_info("s5 method identification data: %s \n", resolve_print_stream(buf->base, nread));
         handle_socks5_method_identification(handle,nread,buf,session);
     } else if (session->session_fields.state == S5_REQUEST){
         //socks5客户端通过验证后，服务端开始发送请求
+        resolve_print_stream(buf->base, nread);
+        //logger_info("s5 request data %s \n", resolve_print_stream(buf->base, nread));
         handle_socks5_request(handle,nread,buf,session);
     } else{
         if (session->session_fields.state == S5_STREAMING)

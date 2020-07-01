@@ -61,3 +61,16 @@ void log_ipv4_and_port(void *ipv4, int port, const char *msg) {
     uv_inet_ntop(AF_INET, ipv4, data, INET_ADDRSTRLEN);
     logger_trace("%s: %s:%d", msg, data, port);
 }
+
+char *resolve_print_stream(char *stream,ssize_t size)
+{
+    char buff[size];
+    char * str;
+    strcpy (buff,"");
+    for (int i = 0; i < size; i++) {
+        unsigned char da = (unsigned char) stream[i];
+    }
+    printf("buf %c",buff);
+    return str = (char *) &buff;
+
+}
