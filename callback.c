@@ -193,8 +193,8 @@ void handle_socks5_request(uv_stream_t *handle,ssize_t nread, const uv_buf_t *bu
     socks5_result_t result = socks5_parse_request(socks5_info, buf->base, (int) nread);
     if (result != S5_OK)
     {
-        //TODO
-        printf("socks5_parse_request failed\n");
+        logger_error("socks5_parse_request failed\n");
+        client_tcp_write_error(handle,result);
         return;
     }
     //判断请求类型
@@ -267,8 +267,8 @@ int client_tcp_write_error(uv_stream_t *handle,int err)
             break;//不支持命令
         case S5_BAD_ATYP: buf[1] = 8;
             break;//错误ATYP
-        default:buf[1];
-            break;
+        default:buf[1] = 1;
+            break;//通用socks错误
     }
     return client_tcp_write_string(handle,buf,10);
 
