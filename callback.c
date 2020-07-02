@@ -74,7 +74,7 @@ void handle_socks5_method_identification(uv_stream_t *handle,ssize_t nread, cons
         close_session(session);
         return;
     }
-    //验证METHODS后，将state更新为[FINSH]
+    //验证METHODS后
     if (socks5_info->state == FINISH)
     {
         //无密码验证
@@ -122,12 +122,11 @@ void on_client_tcp_read_done(uv_stream_t* handle,ssize_t nread,const uv_buf_t* b
     }
     if (session->session_fields.state == S5_METHOD_IDENTIFICATION)
     {
-        logger_info("s5 method identification data: %s \n", resolve_print_stream(buf->base, nread));
+        resolve_print_stream(buf->base, nread,"s5 method identification");
         handle_socks5_method_identification(handle,nread,buf,session);
     } else if (session->session_fields.state == S5_REQUEST){
         //socks5客户端通过验证后，服务端开始发送请求
-        resolve_print_stream(buf->base, nread);
-        //logger_info("s5 request data %s \n", resolve_print_stream(buf->base, nread));
+        resolve_print_stream(buf->base, nread,"s5 request");
         handle_socks5_request(handle,nread,buf,session);
     } else{
         if (session->session_fields.state == S5_STREAMING)
@@ -173,6 +172,7 @@ void on_client_tcp_write_done(uv_write_t *req, int status){
     {
         logger_trace("status=%d, now will close session \n", status);
     } else{
+        printf("%d\n",session->session_fields.state);
         if (session->session_fields.state < S5_STREAMING){
             if (session->session_fields.state == S5_FINISHING_HANDSHAKE)
             {

@@ -62,15 +62,17 @@ void log_ipv4_and_port(void *ipv4, int port, const char *msg) {
     logger_trace("%s: %s:%d", msg, data, port);
 }
 
-char *resolve_print_stream(char *stream,ssize_t size)
+void* resolve_print_stream(char *stream,ssize_t size,void *detail)
 {
-    char buff[size];
-    char * str;
-    strcpy (buff,"");
+
+    unsigned char buff[size];
+    logger_info("%s data:\t",detail);
     for (int i = 0; i < size; i++) {
-        unsigned char da = (unsigned char) stream[i];
+        buff[i] = (unsigned char)stream[i];
+        printf("%d\t",buff[i]);
     }
-    printf("buf %c",buff);
-    return str = (char *) &buff;
+    printf("\n");
+    return buff;
+
 
 }
