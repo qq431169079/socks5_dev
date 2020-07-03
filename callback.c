@@ -172,7 +172,6 @@ void on_client_tcp_write_done(uv_write_t *req, int status){
     {
         logger_trace("status=%d, now will close session \n", status);
     } else{
-        printf("%d\n",session->session_fields.state);
         if (session->session_fields.state < S5_STREAMING){
             if (session->session_fields.state == S5_FINISHING_HANDSHAKE)
             {
@@ -183,7 +182,7 @@ void on_client_tcp_write_done(uv_write_t *req, int status){
         }
         if (session->session_fields.type == SESSION_TYPE_TCP && session->session_fields.state == S5_STREAMING)
         {
-            //完成握手认证后，客户端读取 服务器按以下格式回应客户端的请求
+            //完成握手认证后，客户端读取 服务器读取数据后回应客户端的请求
             upstream_tcp_read_start((uv_stream_t *)((tcp_session_t *)session)->upstream_tcp);
         }
 
