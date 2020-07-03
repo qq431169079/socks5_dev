@@ -204,7 +204,7 @@ void handle_socks5_request(uv_stream_t *handle,ssize_t nread, const uv_buf_t *bu
 
     if (session->session_fields.type == SESSION_TYPE_UDP)
     {
-        logger_warn("Request not supported temporarily\n");
+        logger_warn("UDP Request not supported temporarily\n");
         return;
         //TODO
     }
