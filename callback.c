@@ -425,6 +425,11 @@ int upstream_tcp_write_start(uv_stream_t *handle, const uv_buf_t *buf) {
     return err;
 }
 
+/**
+ * 客户端写入后,服务端相应请求给客户端
+ * @param req
+ * @param status
+ */
 void on_upstream_tcp_write_done(uv_write_t *req, int status) {
     tcp_session_t *session =  ((tcp_session_t *) ((char *) (req) - ((char *) &((tcp_session_t *) 0)->upstream_write_req)));
     if (status < 0 || session->session_fields.state == S5_STREAMING_END) {
