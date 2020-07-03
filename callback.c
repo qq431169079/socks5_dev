@@ -204,12 +204,13 @@ void handle_socks5_request(uv_stream_t *handle,ssize_t nread, const uv_buf_t *bu
 
     if (session->session_fields.type == SESSION_TYPE_UDP)
     {
-        printf("received a UDP request\n");
+        logger_warn("Request not supported temporarily\n");
+        return;
         //TODO
     }
     //为session重新开辟内存空间，并初始化
     session = lrealloc(session, sizeof(tcp_session_t));
-    //tcp_session_t占用空间+session_t占用空间
+    //tcp_session_t 指针 右移session_t大小
     memset(((char *)session)+ sizeof(session_t),0, sizeof(tcp_session_t) - sizeof(session_t));
     handle->data = session;
 
@@ -233,11 +234,6 @@ void handle_socks5_request(uv_stream_t *handle,ssize_t nread, const uv_buf_t *bu
            client_tcp_write_error((uv_stream_t *) session->session_fields.client_tcp, err);
        }
     } else if (socks5_info->atyp == S5_ATYP_DOMAIN){
-        struct addrinfo hint;
-        memset(&hint, 0, sizeof(hint));
-        hint.ai_family = AF_UNSPEC;
-        hint.ai_socktype = SOCK_STREAM;
-        hint.ai_protocol = IPPROTO_TCP;
         //TODO
     } else if(socks5_info->atyp == S5_ATYP_IPV6){
         //TODO
