@@ -75,6 +75,7 @@ void handle_socks5_method_identification(uv_stream_t *handle,ssize_t nread, cons
         return;
     }
     //验证METHODS后
+
     if (socks5_info->state == FINISH)
     {
         //无密码验证
@@ -83,6 +84,7 @@ void handle_socks5_method_identification(uv_stream_t *handle,ssize_t nread, cons
             session->session_fields.state = S5_REQUEST;
             //认证结束后客户端就可以发送请求信息
             client_tcp_write_string(handle, "\5\0", 2);
+            logger_info("session_fields.state2 %d \n",session->session_fields.state);
             logger_trace("socks5 method identification passed \n");
         } else{
             session->session_fields.state = S5_STREAMING_END;
@@ -122,6 +124,7 @@ void on_client_tcp_read_done(uv_stream_t* handle,ssize_t nread,const uv_buf_t* b
     }
     if (session->session_fields.state == S5_METHOD_IDENTIFICATION)
     {
+        logger_info("session_fields.state1 %d\n",session->session_fields.state);
         resolve_print_stream(buf->base, nread,"s5 method identification");
         handle_socks5_method_identification(handle,nread,buf,session);
     } else if (session->session_fields.state == S5_REQUEST){
@@ -147,6 +150,7 @@ int client_tcp_write_string(uv_stream_t *handle, const char *data, int len)
     buf.len = (size_t) len;
     return client_tcp_write_start(handle,&buf);
 }
+//客户端向缓冲区写入数据
 int client_tcp_write_start(uv_stream_t *handle, const uv_buf_t *buf){
     session_t *session = handle->data;
     if (session == NULL)
@@ -162,6 +166,11 @@ int client_tcp_write_start(uv_stream_t *handle, const uv_buf_t *buf){
     }
     return err;
 }
+/**
+ * 客户端写入回调
+ * @param req
+ * @param status
+ */
 void on_client_tcp_write_done(uv_write_t *req, int status){
     session_t *session = ((session_t *) ((char *) (req) - ((char *) &((session_t *) 0)->session_fields.client_write_req)));
     if (session->session_fields.state > S5_STREAMING)
@@ -173,16 +182,20 @@ void on_client_tcp_write_done(uv_write_t *req, int status){
         logger_trace("status=%d, now will close session \n", status);
     } else{
         if (session->session_fields.state < S5_STREAMING){
+            logger_info("session_fields.state3 %d\n",session->session_fields.state);
+            //判断socks5是否完成握手
             if (session->session_fields.state == S5_FINISHING_HANDSHAKE)
             {
                 session->session_fields.state = S5_STREAMING;
             }
-            //socks5验证通过，客户端读取服务端回复消息后，客户端发送请求
+            logger_info("session_fields.state4 %d\n",session->session_fields.state);
+            //客户端读取服务端回应流信息
             client_tcp_read_start((uv_stream_t *) session->session_fields.client_tcp);
         }
         if (session->session_fields.type == SESSION_TYPE_TCP && session->session_fields.state == S5_STREAMING)
         {
-            //完成握手认证后，客户端读取 服务器读取数据后回应客户端的请求
+            logger_info("upstream_tcp_read_start \n");
+            //服务器读取连接目标地址响应消息
             upstream_tcp_read_start((uv_stream_t *)((tcp_session_t *)session)->upstream_tcp);
         }
 
@@ -191,7 +204,7 @@ void on_client_tcp_write_done(uv_write_t *req, int status){
 
 void handle_socks5_request(uv_stream_t *handle,ssize_t nread, const uv_buf_t *buf,session_t *session){
     socks5_info_t *socks5_info = &session->session_fields.socks5_info;
-    //封装请求
+    //封装CMD请求，以及服务端回应
     socks5_result_t result = socks5_parse_request(socks5_info, buf->base, (int) nread);
     if (result != S5_OK)
     {
@@ -215,6 +228,7 @@ void handle_socks5_request(uv_stream_t *handle,ssize_t nread, const uv_buf_t *bu
     handle->data = session;
 
     int err;
+    //初始化服务端tcp处理方式
     err = init_tcp_handle(session,&((tcp_session_t *)session)->upstream_tcp,g_u_loop);
     if (err <0)
     {
@@ -227,6 +241,7 @@ void handle_socks5_request(uv_stream_t *handle,ssize_t nread, const uv_buf_t *bu
        addr4.sin_family = AF_INET;
        addr4.sin_port = htons(socks5_info->dst_port);
        memcpy(&addr4.sin_addr.s_addr,socks5_info->dst_addr,4);
+       //连接目标地址
        err = upstream_tcp_connect(&((tcp_session_t*)session)->upstream_connect_req, (struct sockaddr *) &addr4);
        if (err !=0)
        {
@@ -272,7 +287,7 @@ int client_tcp_write_error(uv_stream_t *handle,int err)
 
 }
 /**
- * 客户端连接
+ * 服务端连接目标地址
  * @param req
  * @param addr
  * @return
@@ -281,6 +296,7 @@ int upstream_tcp_connect(uv_connect_t *req, struct sockaddr *addr)
 {
     tcp_session_t *session = ((tcp_session_t *) ((char *) (req) - ((char *) &((tcp_session_t *) 0)->upstream_connect_req)));
     int err;
+    //连接目标地址
     err = uv_tcp_connect(req,session->upstream_tcp,addr,upstream_tcp_connect_cb);
     if(err != 0 )
     {
@@ -291,12 +307,18 @@ int upstream_tcp_connect(uv_connect_t *req, struct sockaddr *addr)
 
 
 
+/**
+ * 服务端连接目标地址回调
+ * @param req
+ * @param status
+ */
 void upstream_tcp_connect_cb(uv_connect_t* req, int status){
     tcp_session_t *session = ((tcp_session_t *) ((char *) (req) - ((char *) &((tcp_session_t *) 0)->upstream_connect_req)));
     if (session == NULL)
     {
         return;
     }
+    //打印连接状态
     upstream_tcp_connect_log((session_t *)session, status);
     if (status <0)
     {
@@ -317,6 +339,7 @@ void upstream_tcp_connect_cb(uv_connect_t* req, int status){
  * @param session
  */
 void finish_socks5_tcp_handshake(session_t *session) {
+    //完成握手后，初始化状态
     session->session_fields.state = S5_FINISHING_HANDSHAKE;
     struct sockaddr_storage addr;
     //不能直接强转，否则内存抛出错误
@@ -353,11 +376,12 @@ void finish_socks5_handshake(session_t *session, struct sockaddr *addr) {
         memcpy(buf.base+20, &local_port, 2);
     }
     logger_info("new connection bound to local port: %d \n", ntohs(local_port));
+    //完成握手后，客户端向服务端写入数据
     client_tcp_write_start((uv_stream_t *) session->session_fields.client_tcp, &buf);
 }
 
 /**
- * 开始读取连接客户端后的数据
+ * 服务器读取连接目标地址后回应数据流
  * @param handle
  * @return
  */
@@ -369,6 +393,7 @@ int upstream_tcp_read_start(uv_stream_t *handle)
         return -1;
     }
     int err;
+    //服务端读取数据流信息
     err = uv_read_start(handle,on_upstream_tcp_alloc,on_upstream_tcp_read_done);
     if (err != 0)
     {
@@ -384,6 +409,12 @@ void on_upstream_tcp_alloc(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
     buf->len = sizeof(sess->upstream_buf);
 }
 
+/**
+ * 服务端读取流信息后处理
+ * @param handle
+ * @param nread
+ * @param buf
+ */
 void on_upstream_tcp_read_done(uv_stream_t *handle, ssize_t nread,const uv_buf_t *buf){
     if(nread == 0)
     {
@@ -406,6 +437,7 @@ void on_upstream_tcp_read_done(uv_stream_t *handle, ssize_t nread,const uv_buf_t
         return;
     }
     ((uv_buf_t*)buf)->len = (size_t) nread;
+    //将数据写入客户端tcp流
     client_tcp_write_start((uv_stream_t *) session->session_fields.client_tcp, buf);
 
 }
@@ -425,17 +457,19 @@ int upstream_tcp_write_start(uv_stream_t *handle, const uv_buf_t *buf) {
     return err;
 }
 
-/**
- * 客户端写入后,服务端相应请求给客户端
+/**服务端写入回调
  * @param req
  * @param status
  */
 void on_upstream_tcp_write_done(uv_write_t *req, int status) {
     tcp_session_t *session =  ((tcp_session_t *) ((char *) (req) - ((char *) &((tcp_session_t *) 0)->upstream_write_req)));
+    logger_info("session_fields.state3 %d \n",session->session_fields.state);
     if (status < 0 || session->session_fields.state == S5_STREAMING_END) {
         logger_error("upstream write failed: %s\n", uv_strerror(status));
         close_session((session_t *)session);
     } else {
+        logger_info("recv %d\n",session->session_fields.state);
+        //客户端读取
         client_tcp_read_start((uv_stream_t *)session->session_fields.client_tcp);
     }
 }
